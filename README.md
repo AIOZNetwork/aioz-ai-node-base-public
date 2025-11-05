@@ -129,7 +129,13 @@ In which the **_run()_** function is a mandatory function and is the main functi
 <br/>
 And **_do_ai_task()_** is your function to define your AI-task workflow, you can rename this function, and do anything you want to.
 
->NOTE: Output from **_run()_** function must be a OutputObject.
+>NOTE: 
+- Output from **_run()_** function must be a OutputObject.
+- If you need to import external code or utility modules from within your project, please use relative imports, for example:
+```
+from .lib import lib_a
+```
+This ensures the code runs correctly inside the sandboxed environment.
 
 ### Step 2: Define _demo.py_ to test your AI library
 
