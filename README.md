@@ -1,7 +1,7 @@
 [![Generic badge](https://img.shields.io/badge/aioz_ainode_adapter-1.0.0-green.svg)]()
 [![Generic badge](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
 
-# AIOZ AI NODE ADAPTER
+# AIOZ AI MODEL
 A lightweight Python adapter that allows your custom AI library to seamlessly integrate and run inside the **AIOZ-AI-Node** environment.  
 This package defines standard interfaces for **input**, **output**, and **file objects**, ensuring your AI task can communicate properly with the **AIOZ-AI-Node** system.
 
