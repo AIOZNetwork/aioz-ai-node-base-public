@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aioz-ainode-adapter"
+dynamic = ["version"]
+description = "Adapter for deploying AI models to AIOZ AI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "AIOZ AI" }]
+keywords = ["aioz", "aioz-network", "aioz-ai", "ai", "model-serving"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["pydantic==2.4.2"]
+
+[project.urls]
+Documentation = "https://github.com/AIOZNetwork/aioz-ai-node-base-public#readme"
+Source = "https://github.com/AIOZNetwork/aioz-ai-node-base-public"
+Issues = "https://github.com/AIOZNetwork/aioz-ai-node-base-public/issues"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aioz_ainode_adapter*"]
+exclude = ["tests*", "examples*", "my_ai_lib*", "templates*"]
+namespaces = false
+
+[tool.setuptools.dynamic]
+version = { attr = "aioz_ainode_adapter.version.__version__" }

@@ -1,176 +1,94 @@
-[![Generic badge](https://img.shields.io/badge/aioz_ainode_adapter-1.0.0-green.svg)]()
-[![Generic badge](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-360/)
+# AIOZ AI Node Adapter
 
-# AIOZ AI MODEL
-A lightweight Python adapter that allows your custom AI library to seamlessly integrate and run inside the **AIOZ-AI-Node** environment.  
-This package defines standard interfaces for **input**, **output**, and **file objects**, ensuring your AI task can communicate properly with the **AIOZ-AI-Node** system.
+`aioz-ainode-adapter` defines the contract the contract for deploying AI models to
+AIOZ AI. Authors use its schemas to describe task inputs and outputs, then expose a
+`my_ai_lib.run` entrypoint through an official template.
 
-## Dependencies
+## Installation
 
-Since your AI library will run on the **AIOZ-AI-Node** environment, below are listed all the libraries and corresponding versions available in the **AIOZ-AI-Node** environment.
-On your local machine, you can create a new virtual environment and install all the libraries below:
-
-```shell
-pip install -r requirements.txt
-pip install torch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 --index-url https://download.pytorch.org/whl/cu118
-pip install xformers==0.0.23 --index-url https://download.pytorch.org/whl/cu118
-```
-## Tutorial
-
-### Step 1: Define your AI library
-Your AI library should contain a **_run()_** entrypoint, which the AIOZ-AI-Node system will call automatically.
-
-#### 1.1: Define _my_ai_lib/init.py_
-
-```python
-from .run import run
+```bash
+python -m pip install \
+  "git+https://github.com/AIOZNetwork/aioz-ai-node-base-public.git@v1.1.0"
 ```
 
-This file defines that the `run()` function in run.py as an attribute of the `my_ai_lib` and that I can call it by `my_ai_lib.run()`
+The adapter supports Python 3.10 and newer and installs Pydantic 2.4.2 as its runtime
+dependency.
 
-#### 1.2: Define _my_ai_lib/run.py_
+## Start from a template
 
-Define your input object and output object inherit from `InputObject`, `OutputObject`
+Choose a template and follow its README for purpose, structure, and usage:
 
-Example input / output object:
+- [Challenge template](templates/challenge/README.md): submit models to AIOZ AI
+  Challenges.
+- [Inference template](templates/inference/README.md): create models on AIOZ AI.
 
-```python
-from pathlib import Path
-from typing import Any, Union, Literal
-from aioz_ainode_adapter.schemas import InputObject, OutputObject, FileObject
+Each template supplies the required package structure, schema module, `run`
+entrypoint, model-loading stage, processing pipeline, dependency file, and preflight
+check.
 
+## Author contract
 
-class MyInput(InputObject):
-    input_image: str
-    example_param: Any
+Keep the author package named `my_ai_lib` and expose a callable `my_ai_lib.run`.
+The entrypoint receives one object derived from `InputObject` and returns one object
+derived from `OutputObject`.
 
+Define task-specific `TaskInput` and `TaskOutput` classes in the template schema
+module. These classes inherit the adapter fields and add the fields required by the
+task. Pydantic validates the resulting objects at the entrypoint boundary.
 
-class MyOutput(OutputObject):
-    text: str
-    output_image: FileObject
+The fields on `TaskOutput` form the output key-value object. Wrap every file-valued
+field in `FileObject` so the file can be identified and materialized correctly.
+
+## Inputs
+
+Every `InputObject` includes `device` and `model_storage_directory`.
+
+`device` is either `cpu` or `cuda` and defaults to `cuda`. Use this value when placing
+the model and its inputs on the selected execution device.
+
+Place model weights and related assets in the selected template's `./models`
+directory. During execution, `model_storage_directory` provides the path to those
+packaged assets. Load every model resource through that supplied path so the model
+remains portable across execution environments.
+
+Task-specific input fields belong on the template's `TaskInput` subclass.
+
+## Outputs and files
+
+Task-specific output fields belong on the template's `TaskOutput` subclass. Return a
+fully populated `TaskOutput` from `my_ai_lib.run`.
+
+`FileObject.data` accepts an open binary file, a local `Path`, or a URL. A local
+`Path` provides the simplest form for a file produced during the task. When using an
+open binary file, keep the handle readable through the return from `run`.
+
+Set `FileObject.name` to the filename presented with the output. Use a clear extension
+that matches the file content.
+
+## Dependencies and model weights
+
+Add every model-specific Python dependency to the selected template's
+`requirements.txt`. Pin dependency versions so clean builds resolve the same runtime
+environment.
+
+Store model weights under the template's `./models` directory before packaging or
+submission. In author code, resolve those files relative to
+`model_storage_directory`. Keep source code independent from machine-specific paths.
+
+## Preflight
+
+Run the selected template's preflight from that template directory before packaging
+or submission:
+
+```bash
+python preflight.py
 ```
 
-<br/>
-<br/>
+Preflight imports `my_ai_lib`, validates the schema and entrypoint contract, executes
+the sample task, and checks the resulting output artifact.
 
-In **_aioz_ainode_adapter_** library we def ine 3 Object type: `InputObject`, `OutputObject`, `FileObject` (define base on pydantic.BaseModel)
+## License
 
-- **_InputObject_**: Define the format for input when the AIOZ-AI-Node system sends to your AI library. This object has two default param: `device` and `model_storage_directory`.
+This project is licensed under the [MIT License](LICENSE).
 
-| Attribute                 | Type   | Desc                                                                             |
-|:--------------------------|:-------|:---------------------------------------------------------------------------------|
-| `device`                  | Choice | This is a device for your AI model, it has three options ["cuda", "cpu"] |
-| `model_storage_directory` | String | This is a directory storing your model weights                                   |
-
-> NOTE: If your AI library needs to provide a directory path where your AI model weights are stored, that path must be obtained from **_model_storage_directory_**.
-> Because the AIOZ-AI-Node system will specify this.
-
-<br/>
-
-- **_OutputObject_**: Define the format for output when your AI library sends to the AIOZ-AI-Node system.
-  
-- **_FileObject_**: Define the format for the file, if your output has a file. This object has two fields: `data` and `name`.
-
-| Attribute | Type   | Desc                                                                                                   |
-|:----------|:-------|:-------------------------------------------------------------------------------------------------------|
-| `data`    | Choice | This is a file data, this attr allows three formats: io.BufferedReader, Path (local file path) and URL |
-| `name`    | String | This is a file name                                                                                    |
-
-Example for creating **_FileObject_** from local file.
-  
-```python
-output_file = FileObject(data=open("file/path.txt", "rb"), name="output.txt")
-```
-
-<br/>
-
->NOTE:
->
-> If your input params have a file, it must be a **_local file path_** or **_URL_**.
->
-> And if your output has a file, it must be a **_FileObject_**.
-
-#### 1.3: Define _run()_ function
-
-```python
-def do_ai_task(
-        input_image: Union[str, Path],
-        example_param: Any,
-        model_storage_directory: Union[str, Path],
-        device: Literal["cpu", "cuda", "gpu"] = "cpu",
-        *args, **kwargs) -> Any:
-    """Define AI task: load model, pre-process, post-process, etc ..."""
-    # Define AI task workflow. Below is an example
-    text = "This is the AI task result"
-    output_image = open("wiki/aioz.png", "rb")  # io.BufferedReader
-    return text, output_image
-
-
-def run(input_obj: InputObject) -> OutputObject:
-    my_input = MyInput.model_validate(input_obj.model_dump())
-    print(f"Input: {my_input}")
-
-    # do something
-    text, output_image = do_ai_task(
-        input_image=my_input.input_image,
-        example_param=my_input.example_param,
-        model_storage_directory=my_input.model_storage_directory,
-        device=my_input.device
-    )
-
-    # make output object
-    # # create a file object if the output is a file
-    output_file = FileObject(data=output_image, name="output_image.png")
-    output_obj = MyOutput(text=text, output_image=output_file)
-    return output_obj
-```
-
-In which the **_run()_** function is a mandatory function and is the main function, you are not allowed to change the name.
-<br/>
-And **_do_ai_task()_** is your function to define your AI-task workflow, you can rename this function, and do anything you want to.
-
->NOTE: 
-> - Output from **_run()_** function must be a OutputObject.
-> - If you need to import external code or utility modules from within your project, please use relative imports, for example:
-> ```
-> from .lib import lib_a
-> ```
-> This ensures the code runs correctly inside the sandboxed environment.
-
-### Step 2: Define _demo.py_ to test your AI library
-
-Example
-
-```python
-import my_ai_lib
-from aioz_ainode_adapter.schemas import InputObject
-
-
-def main():
-    input_obj = InputObject(input_image="wiki/aioz.png", example_param="example")
-    output_obj = my_ai_lib.run(input_obj)
-    print(f"Output: {output_obj}")
-
-
-if __name__ == '__main__':
-    main()
-```
-
-In this file **_my_ai_lib.run()_** receives an **_InputObject_** and returns an **_OutputObject_**.
-<br/>
-After run demo.py you can see console like that.
-
-```shell
-Input: type='InputObj' device='cuda' model_storage_directory='models' input_image='wiki/aioz.png' example_param='example'
-Output: type='OutputObj' text='This is the AI task result' output_image=FileObject(type='FileObj', data=<_io.BufferedReader name='wiki/aioz.png'>, name='output_image.png')
-```
-
-# License
-
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
-  <img alt="License Creative Commons " style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" />
-</a><br />
-This repo is shared with terms of
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
-  Creative Commons Attribution 4.0 International (CC BY 4.0)
-</a> @ <a rel="author" href="https://ai.aioz.io/"> AIOZ Pte Ltd </a>
+Copyright (c) 2026 AIOZ Network.
