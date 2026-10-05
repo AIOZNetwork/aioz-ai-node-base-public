@@ -62,6 +62,8 @@ def make_output(output_obj: OutputObject, tmp_dir: Union[str, Path] = None):
                             new_elem[subk] = subv
                     new_list.append(new_elem)
                 output_dict[k] = new_list
+            else:
+                output_dict[k] = v
         else:
             output_dict[k] = v
     
