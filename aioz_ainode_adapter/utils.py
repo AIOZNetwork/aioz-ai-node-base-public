@@ -1,12 +1,12 @@
-import os
-import sys
-import shutil
 import logging
+import os
+import shutil
+import sys
 from pathlib import Path
 from typing import Union
-from .common import PKG_NAME
 from urllib.parse import urlparse
 
+from .common import PKG_NAME
 
 logger = logging.getLogger(f"{PKG_NAME}.utl")
 
@@ -36,7 +36,7 @@ def compress_folder(base_name: str, root_dir: Union[str, Path]) -> bool:
     :return: True / False
     """
     try:
-        shutil.make_archive(base_name, format='zip', root_dir=root_dir)
+        shutil.make_archive(base_name, format="zip", root_dir=root_dir)
         return True
     except Exception as e:
         logger.error(f"Compress failed: {e}")

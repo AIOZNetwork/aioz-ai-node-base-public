@@ -29,7 +29,8 @@ def main() -> None:
         from my_ai_lib.schemas import TaskInput, TaskOutput
     except Exception as e:
         fail(f"Could not import my_ai_lib (check your code / requirements): {e}")
-    from aioz_ainode_adapter.schemas import FileObject, InputObject, OutputObject
+    from aioz_ainode_adapter.schemas import (FileObject, InputObject,
+                                             OutputObject)
 
     if not callable(getattr(my_ai_lib, "run", None)):
         fail("my_ai_lib.run is missing or not callable. Keep `from .run import run`.")

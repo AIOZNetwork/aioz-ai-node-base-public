@@ -13,8 +13,8 @@ Your schema is yours; this does not enforce specific fields. If you changed your
 input fields, update the TaskInput(...) call below to match.
 """
 
-import sys
 import io
+import sys
 import tempfile
 from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
