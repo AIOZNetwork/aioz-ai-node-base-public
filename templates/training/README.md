@@ -4,7 +4,7 @@ Use this template to train a model on AIOZ AI, defining your own input and outpu
 fields. The example is shaped for a **model training** workflow:
 
 - **input**: `dataset_dir`, `weight_dir` (optional, for resume), `epochs`, `batch_size`, `learning_rate`
-- **output**: `weight_last: FileObject`, `weight_best: FileObject`
+- **output**: `last_weight: FileObject`, `best_weight: FileObject`
 
 Keep the contract shape (`InputObject` / `OutputObject` and the `run()`
 entrypoint); the fields inside are yours.
@@ -17,7 +17,7 @@ entrypoint); the fields inside are yours.
 | `run()` in `run.py` | **Fixed.** It is the entrypoint AIOZ AI calls. Adapt its body to your stages; do not rename or remove it. |
 | `TaskInput` / `TaskOutput` in `schemas.py` | **Yours.** Define the hyperparameters and fields your training needs. |
 | `define_model` / `load_model` in `model.py` | **Yours.** Define your model architecture and weight loading logic. |
-| `load_data` / `train_model` / `evaluate_model` / `save_model` in `pipeline.py` | **Yours.** Fill in these stages with your training loops and dataset loading. |
+| `load_data` / `train_model` / `evaluate_model` / `save_model` in `pipeline.py` | **Yours.** Fill in these stages with your dataset loading, preprocessing, and training loops. |
 | `requirements.txt` | **Yours.** Add every dependency you import. |
 
 ## Where your code goes
@@ -41,16 +41,51 @@ python preflight.py               # runs a dummy training workflow and verifies 
 ## The contract
 
 * **`InputObject`** (base fields your `TaskInput` inherits):
-  * `device`: one of `cpu`, `cuda` (default `cpu`).
-  * `model_storage_directory`: where your models are stored by default.
-* This example's input: **`dataset_dir: str`**, **`weight_dir: Optional[str] = None`**, **`epochs: int`**, **`batch_size: int`**, **`learning_rate: float`**.
-* This example's output: **`weight_last: FileObject`**, **`weight_best: FileObject`**.
+  * `device`: one of `cpu`, `cuda`, `gpu` (default `cpu`).
+  * `model_storage_directory`: directory where your output models/checkpoints are stored by default.
+* This example's input:
+  * **`dataset_dir: str`**: path to the folder containing your user-defined dataset.
+  * **`weight_dir: Optional[str] = None`**: optional path to pre-trained weights/checkpoint for resuming.
+  * **`epochs: int`**, **`batch_size: int`**, **`learning_rate: float`**: training hyperparameters.
+* This example's output: **`last_weight: FileObject`**, **`best_weight: FileObject`**.
 
 ## Defining your own fields
 
 1. Edit `TaskInput` / `TaskOutput` in `my_ai_lib/schemas.py`.
 2. Update the stages in `my_ai_lib/pipeline.py`, `my_ai_lib/model.py` (and `run()` if needed) to use them.
 3. Update the `TaskInput(...)` call in `preflight.py` to match.
+
+## Dataset (User-Defined)
+
+The dataset format and loading logic are **completely user-defined**:
+
+- **Input path:** AIOZ AI passes the path to your dataset via `task_input.dataset_dir`.
+- **Layout:** Organize your files (e.g. images, labels, CSVs) inside `dataset_dir` however your model requires.
+- **Loading:** Implement `load_data(dataset_dir)` in `my_ai_lib/pipeline.py` to parse files and return your train/val sets or loaders.
+- **Local testing:** In `preflight.py`, point `dataset_dir` to your local dataset folder to test loading before submission.
+
+### Code example
+
+```python
+# Example: Custom Dataset & DataLoader in my_ai_lib/pipeline.py
+from pathlib import Path
+from torch.utils.data import Dataset, DataLoader
+
+class CustomDataset(Dataset):
+    def __init__(self, data_dir: Path):
+        self.files = sorted(data_dir.glob("*.*"))
+    def __len__(self):
+        return len(self.files)
+    def __getitem__(self, idx):
+        # Load and preprocess single sample
+        return sample, label
+
+def load_data(dataset_dir: str):
+    base = Path(dataset_dir)
+    train_loader = DataLoader(CustomDataset(base / "train"), batch_size=32, shuffle=True)
+    val_loader = DataLoader(CustomDataset(base / "val"), batch_size=32, shuffle=False)
+    return train_loader, val_loader
+```
 
 ## Resuming Training
 
