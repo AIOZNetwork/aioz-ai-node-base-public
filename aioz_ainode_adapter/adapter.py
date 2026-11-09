@@ -1,11 +1,11 @@
-import os
-import sys
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Union
+
 from .common import PKG_NAME
-from .schemas import OutputObject, InputObject, ErrorMsg, FileObject
+from .schemas import ErrorMsg, FileObject, InputObject, OutputObject
 
 logger = logging.getLogger(f"{PKG_NAME}.adapter")
 
@@ -66,7 +66,7 @@ def make_output(output_obj: OutputObject, tmp_dir: Union[str, Path] = None):
                 output_dict[k] = v
         else:
             output_dict[k] = v
-    
+
     output_dict["key_files"] = key_files
     print(output_dict, file=sys.stdout)
 
@@ -74,4 +74,3 @@ def make_output(output_obj: OutputObject, tmp_dir: Union[str, Path] = None):
 def make_error(msg: str, traceback: str = ""):
     error_obj = ErrorMsg(message=msg, traceback=traceback)
     print(error_obj.model_dump(), file=sys.stdout)
-

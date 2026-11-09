@@ -1,0 +1,5 @@
+Sample input for local testing only.
+
+`preflight.py` points at this folder as the `input_folder`. Drop a few
+representative files here so you can exercise your task locally. AIOZ AI
+provides the real inputs at run time.
