@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Literal, Optional, Union
 
 
-def define_model(device: Literal["cpu", "cuda", "gpu"] = "cpu") -> Any:
+def define_model(device: Literal["cpu", "cuda"] = "cpu") -> Any:
     """Define and return your model.
 
     This placeholder returns None. Replace it with your model architecture:
@@ -26,7 +26,7 @@ def define_model(device: Literal["cpu", "cuda", "gpu"] = "cpu") -> Any:
 
 def load_model(
     weight_dir: Optional[Union[str, Path]] = None,
-    device: Literal["cpu", "cuda", "gpu"] = "cpu",
+    device: Literal["cpu", "cuda"] = "cpu",
 ) -> Any:
     """Load and return your model from a previous training checkpoint, placed on `device`.
 
