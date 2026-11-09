@@ -35,7 +35,9 @@ def predict(model: Any, samples: List[str]) -> List[Tuple[str, int]]:
     return predictions
 
 
-def postprocess(predictions: List[Tuple[str, int]], output_path: Path = Path("result.csv")) -> Path:
+def postprocess(
+    predictions: List[Tuple[str, int]], output_path: Path = Path("result.csv")
+) -> Path:
     """Turn predictions into your output file and return its path.
 
     Placeholder: write the predictions to result.csv.

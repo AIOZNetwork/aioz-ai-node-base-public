@@ -11,7 +11,7 @@ python -m pip install \
   "git+https://github.com/AIOZNetwork/aioz-ai-node-base-public.git@v1.1.0"
 ```
 
-The adapter supports Python 3.10 and newer and installs Pydantic 2.4.2 as its runtime
+The adapter supports Python 3.10 and newer and installs Pydantic >= 2.11 as its runtime
 dependency.
 
 ## Start from a template
